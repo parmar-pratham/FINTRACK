@@ -1,16 +1,20 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import "./styles.css";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuthState } from "react-firebase-hooks/auth";
 import { auth } from "../../firebase";
 import userSvg from "../../assets/user.svg";
 function Header() {
+  const [isOpen, setIsOpen] = useState(false);
   const [user] = useAuthState(auth);
   const navigate = useNavigate();
   function logout() {
     auth.signOut();
     navigate("/");
   }
+  const toggleMenu = () => {
+    setIsOpen(!isOpen);
+  };
 
   useEffect(() => {
     if (!user) {
@@ -21,7 +25,25 @@ function Header() {
   }, [user, navigate]);
 
   return (
-    <div className="navbar">
+    <nav className="navbar">
+     {user ? (<div className={`hamburger-menu ${isOpen ? 'active' : ''}`} onClick={toggleMenu}>
+      <span></span>
+        <span></span>
+        <span></span>
+      </div>
+      ) : (
+        <></>
+      )}
+      
+      {/* Mobile menu */}
+      <div className={`mobile-menu ${isOpen ? 'active' : ''}`}>
+        {/* Add your menu items here */}
+        <a href="/">Home</a>
+        <a href="/">Dashboard</a>
+        <a href="/">Profile</a>
+      </div>
+      
+
       <p className="navbar-heading">FINTRACK</p>
       {user ? (
         <p className="navbar-link" onClick={logout}>
@@ -37,7 +59,7 @@ function Header() {
       ) : (
         <></>
       )}
-    </div>
+    </nav>
   );
 }
 

@@ -10,7 +10,7 @@ import Cards from "./Cards";
 import NoTransactions from "./NoTransactions";
 import { useAuthState } from "react-firebase-hooks/auth";
 import { auth, db } from "../firebase";
-import { addDoc, collection, getDocs, query } from "firebase/firestore";
+import { addDoc, collection, getDocs, query, deleteDoc } from "firebase/firestore";
 import Loader from "./Loader";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
@@ -196,9 +196,26 @@ const Dashboard = () => {
     colorField: "category",
   };
 
-  function reset() {
-    console.log("resetting");
+  async function reset() {
+    try {
+      setLoading(true);
+      const q = query(collection(db, `users/${user.uid}/transactions`));
+      const querySnapshot = await getDocs(q);
+      const deletePromises = querySnapshot.docs.map(async (doc) => {
+        await deleteDoc(doc.ref);
+      });
+      await Promise.all(deletePromises);
+      setTransactions([]);
+      calculateBalance();
+      toast.success("All transactions cleared!");
+    } catch (e) {
+      console.error("Error resetting transactions: ", e);
+      toast.error("Error clearing transactions");
+    } finally {
+      setLoading(false);
+    }
   }
+
   const cardStyle = {
     boxShadow: "0px 0px 30px 8px rgba(227, 227, 227, 0.75)",
     margin: "2rem",
