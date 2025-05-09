@@ -23,7 +23,7 @@ function Cards({
         <h2>Current Balance</h2>
         <p>₹{currentBalance}</p>
         <div class="btn btn-blue" style={{ margin: 0 }} onClick={reset}>
-          Reset Balance
+          Reset Transactions
         </div>
       </Card>
 
