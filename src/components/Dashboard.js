@@ -49,6 +49,7 @@ const Dashboard = () => {
   const [currentBalance, setCurrentBalance] = useState(0);
   const [income, setIncome] = useState(0);
   const [expenses, setExpenses] = useState(0);
+  const [chartData, setChartData] = useState({ balanceData: [], spendingDataArray: [] });
 
   const navigate = useNavigate();
 
@@ -75,6 +76,7 @@ const Dashboard = () => {
           balanceData.push({ month: monthYear, balance: -transaction.amount });
         }
 
+        // Only process expense transactions for the pie chart
         if (spendingData[tag]) {
           spendingData[tag] += transaction.amount;
         } else {
@@ -83,15 +85,24 @@ const Dashboard = () => {
       }
     });
 
-    const spendingDataArray = Object.keys(spendingData).map((key) => ({
-      category: key,
-      value: spendingData[key],
-    }));
+    // Sort spending data by amount in descending order
+    const spendingDataArray = Object.entries(spendingData)
+      .map(([category, value]) => ({
+        category,
+        value: Number(value.toFixed(2)),
+      }))
+      .sort((a, b) => b.value - a.value);
 
     return { balanceData, spendingDataArray };
   };
 
-  const { balanceData, spendingDataArray } = processChartData();
+  useEffect(() => {
+    const { balanceData, spendingDataArray } = processChartData();
+    setChartData({ balanceData, spendingDataArray });
+  }, [transactions]);
+
+  const { balanceData, spendingDataArray } = chartData;
+
   const showExpenseModal = () => {
     setIsExpenseModalVisible(true);
   };
@@ -112,7 +123,7 @@ const Dashboard = () => {
     fetchTransactions();
   }, []);
 
-  const onFinish = (values, type) => {
+  const onFinish = async (values, type) => {
     const newTransaction = {
       type: type,
       date: moment(values.date).format("YYYY-MM-DD"),
@@ -121,11 +132,16 @@ const Dashboard = () => {
       name: values.name,
     };
 
-    setTransactions([...transactions, newTransaction]);
-    setIsExpenseModalVisible(false);
-    setIsIncomeModalVisible(false);
-    addTransaction(newTransaction);
-    calculateBalance();
+    try {
+      await addTransaction(newTransaction);
+      await fetchTransactions();
+      setIsExpenseModalVisible(false);
+      setIsIncomeModalVisible(false);
+      calculateBalance();
+    } catch (error) {
+      console.error("Error adding transaction:", error);
+      toast.error("Failed to add transaction");
+    }
   };
 
   const calculateBalance = () => {
@@ -194,6 +210,16 @@ const Dashboard = () => {
     data: spendingDataArray,
     angleField: "value",
     colorField: "category",
+    radius: 0.8,
+    label: {
+      type: 'outer',
+      content: '{name} {percentage}',
+    },
+    interactions: [
+      {
+        type: 'element-active',
+      },
+    ],
   };
 
   async function reset() {
