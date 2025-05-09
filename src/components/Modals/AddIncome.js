@@ -70,14 +70,9 @@ function AddIncomeModal({
           style={{ fontWeight: 600 }}
           label="Tag"
           name="tag"
-          rules={[{ required: true, message: "Please select a tag!" }]}
+          rules={[{ required: true, message: "Please enter a tag!" }]}
         >
-          <Select className="select-input-2">
-            <Select.Option value="salary">Salary</Select.Option>
-            <Select.Option value="freelance">Freelance</Select.Option>
-            <Select.Option value="investment">Investment</Select.Option>
-            {/* Add more tags here */}
-          </Select>
+          <Input type="text" className="custom-input" placeholder="Enter income tag (e.g. salary, freelance)" />
         </Form.Item>
         <Form.Item>
           <Button className="btn btn-blue" type="primary" htmlType="submit">
